@@ -21,7 +21,7 @@ Then kick-off Ansible using;
 
 At a high level what we are creating will look like this;
 
-![Network Diagram](/aws-bgp-outbound.svg)
+![Network Diagram](https://github.com/Kahn/aws-bgp-test/blob/master/aws_bgp_outbound.svg)
 
 ### Router1
 ```
