@@ -1,10 +1,10 @@
 # Using BGP to resolve outbound connectivity with high availability in AWS VPC's
 
-The story is that using both HTTP Proxies and NAT in AWS VPC are generally sub-optimal. Neither provide *quick* failover and both carry a high systems overhead for what *should* be a network engineers problem.
+The story is that using both [HTTP Proxies](https://aws.amazon.com/articles/5995712515781075) and [NAT](http://blog.bwhaley.com/ha-nat) in AWS VPC are generally sub-optimal. Neither provide *quick* failover and both carry a high systems overhead for what *should* be a network engineers problem.
 
 I put on my network engineering hat and decided to test using two VyOS hosts running BGP in the case of a typical multi-homed datacentre connection would be. The only significant difference in this example design versus a real production implementation is the use of IPSec tunnels rather than Amazon Direct Connects.
 
-Once again thanks to Vultr for their fantastic public cloud which enables simple tests like this one with ISO loading for VyOS with minimal pain.
+Once again thanks to [Vultr](http://www.vultr.com/?ref=6813536) for their fantastic public cloud which enables simple tests like this one with ISO loading for VyOS with minimal pain.
 
 ## Cloudformation
 
