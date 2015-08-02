@@ -51,6 +51,7 @@
          }
       },
       "VpnConnectionGreen" : {
+        "DependsOn" : "VpnGatewayGreen",
          "Type" : "AWS::EC2::VPNConnection",
          "Properties" : {
             "Type" : "ipsec.1",
@@ -60,6 +61,7 @@
          }
       },
       "AttachVpnGatewayGreen" : {
+         "DependsOn" : [ "VpnGatewayGreen", "VPC" ],
          "Type" : "AWS::EC2::VPCGatewayAttachment",
          "Properties" : {
             "VpcId" : { "Ref" : "VPC" },
@@ -67,6 +69,7 @@
          }
       },
       "VpnGatewayRoutePropGreen" : {
+        "DependsOn" : "AttachVpnGatewayGreen",
         "Type" : "AWS::EC2::VPNGatewayRoutePropagation",
         "Properties" : {
           "RouteTableIds" : [{"Ref" : "PrivateRouteTable"}],
