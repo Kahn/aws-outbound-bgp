@@ -18,6 +18,18 @@
        "Description" : "Endpoint IP address for IPSec tunnel 1",
        "AllowedPattern" : "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
        "ConstraintDescription" : "Must supply a valid IPv4 address to terminate IPSec tunnel"
+     },
+     "CustomerGatewayBlueAsn" : {
+       "Type" : "Number",
+       "Description" : "A 16 bit / 2 byte ASN",
+       "MaxValue" : 65536,
+       "ConstraintDescription" : "AWS VPC's only support 2 byte ASN up to 65535"
+     },
+     "CustomerGatewayBlueIpAddress" : {
+       "Type" : "String",
+       "Description" : "Endpoint IP address for IPSec tunnel 1",
+       "AllowedPattern" : "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+       "ConstraintDescription" : "Must supply a valid IPv4 address to terminate IPSec tunnel"
      }
    },
    "Resources" : {
@@ -30,10 +42,24 @@
           "InstanceTenancy" : "default"
          }
       },
+      "PrivateSubnet" : {
+         "Type" : "AWS::EC2::Subnet",
+         "Properties" : {
+            "VpcId" : { "Ref" : "VPC" },
+            "CidrBlock" : { "Ref" : "VpcSubnetCidr" }
+         }
+      },
       "PrivateRouteTable" : {
          "Type" : "AWS::EC2::RouteTable",
          "Properties" : {
             "VpcId" : { "Ref" : "VPC" }
+         }
+      },
+      "SubnetRouteTableAssociation" : {
+         "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties" : {
+            "SubnetId" : { "Ref" : "PrivateSubnet" },
+            "RouteTableId" : { "Ref" : "PrivateRouteTable" }
          }
       },
       "CustomerGatewayGreen" : {
@@ -44,28 +70,54 @@
             "IpAddress" : { "Ref" : "CustomerGatewayGreenIpAddress" }
          }
       },
-      "VpnGatewayGreen" : {
+      "CustomerGatewayBlue" : {
+         "Type" : "AWS::EC2::CustomerGateway",
+         "Properties" : {
+            "Type" : "ipsec.1",
+            "BgpAsn" : { "Ref" : "CustomerGatewayBlueAsn" },
+            "IpAddress" : { "Ref" : "CustomerGatewayBlueIpAddress" }
+         }
+      },
+      "VpnGateway" : {
          "Type" : "AWS::EC2::VPNGateway",
          "Properties" : {
             "Type" : "ipsec.1"
          }
       },
       "VpnConnectionGreen" : {
-        "DependsOn" : "VpnGatewayGreen",
+        "DependsOn" : "VpnGateway",
          "Type" : "AWS::EC2::VPNConnection",
          "Properties" : {
             "Type" : "ipsec.1",
             "StaticRoutesOnly" : "false",
             "CustomerGatewayId" : {"Ref" : "CustomerGatewayGreen"},
-            "VpnGatewayId" : {"Ref" : "VpnGatewayGreen"}
+            "VpnGatewayId" : {"Ref" : "VpnGateway"}
+         }
+      },
+      "VpnConnectionBlue" : {
+        "DependsOn" : "VpnGateway",
+         "Type" : "AWS::EC2::VPNConnection",
+         "Properties" : {
+            "Type" : "ipsec.1",
+            "StaticRoutesOnly" : "false",
+            "CustomerGatewayId" : {"Ref" : "CustomerGatewayBlue"},
+            "VpnGatewayId" : {"Ref" : "VpnGateway"}
          }
       },
       "AttachVpnGatewayGreen" : {
-         "DependsOn" : [ "VpnGatewayGreen", "VPC" ],
+         "DependsOn" : [ "VpnGateway", "VPC" ],
          "Type" : "AWS::EC2::VPCGatewayAttachment",
          "Properties" : {
             "VpcId" : { "Ref" : "VPC" },
-            "VpnGatewayId" : { "Ref" : "VpnGatewayGreen" }
+            "VpnGatewayId" : { "Ref" : "VpnGateway" }
+         }
+      },
+      "AttachVpnGatewayBlue" : {
+         "DependsOn" : [ "VpnGateway", "VPC" ],
+         "Type" : "AWS::EC2::VPCGatewayAttachment",
+         "Properties" : {
+            "VpcId" : { "Ref" : "VPC" },
+            "VpnGatewayId" : { "Ref" : "VpnGateway" }
          }
       },
       "VpnGatewayRoutePropGreen" : {
@@ -73,7 +125,15 @@
         "Type" : "AWS::EC2::VPNGatewayRoutePropagation",
         "Properties" : {
           "RouteTableIds" : [{"Ref" : "PrivateRouteTable"}],
-          "VpnGatewayId" : {"Ref" : "VpnGatewayGreen"}
+          "VpnGatewayId" : {"Ref" : "VpnGateway"}
+        }
+      },
+      "VpnGatewayRoutePropBlue" : {
+        "DependsOn" : "AttachVpnGatewayBlue",
+        "Type" : "AWS::EC2::VPNGatewayRoutePropagation",
+        "Properties" : {
+          "RouteTableIds" : [{"Ref" : "PrivateRouteTable"}],
+          "VpnGatewayId" : {"Ref" : "VpnGateway"}
         }
       }
    }
