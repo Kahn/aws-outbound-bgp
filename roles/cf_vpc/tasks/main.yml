@@ -1,0 +1,17 @@
+---
+
+- name: Deploy VPC
+  cloudformation:
+    stack_name: "VPC"
+    state: "present"
+    region: "ap-southeast-2"
+    disable_rollback: true
+    template: "roles/cf_vpc/files/vpc.json"
+    template_parameters:
+      VpcSubnetCidr: 10.180.0.0/20
+      CustomerGatewayGreenAsn: 64521
+      CustomerGatewayGreenIpAddress: 108.61.251.149
+      CustomerGatewayBlueAsn: 64522
+      CustomerGatewayBlueIpAddress: 104.156.232.83
+    tags:
+      Stack: "ansible-cloudformation"

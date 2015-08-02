@@ -1,0 +1,6 @@
+---
+
+- hosts: cloudformation
+  connection: local
+  roles:
+    - cf_vpc
